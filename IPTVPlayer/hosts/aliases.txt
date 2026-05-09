@@ -51,6 +51,7 @@
 "hostfreediscpl":"https://freedisc.pl/",
 "hostfullmatchtvcom":"https://fullmatchtv.com/",
 "hostgamatocom":"https://gamato-movies.com/",
+"hostgaskrank":"https://www.gaskrank.tv/",
 "hostgledalica":"https://gledalica.com/",
 "hostgreekdocumentaries3":"http://greekdocumentaries2.blogspot.gr/",
 "hosthdfilme":"https://hdfilme.my",
