@@ -1166,6 +1166,8 @@ class E2iPlayerWidget(Screen):
         # fires this same callback and would otherwise overwrite the value
         # we are about to restore with whatever index/name it lands on first.
         try:
+            if not config.plugins.iptvplayer.rememberHistorySelection.value:
+                return
             if self._isLoadingList or not self.isSearchHistoryList():
                 return
             item = self.getSelItem()
@@ -1179,6 +1181,8 @@ class E2iPlayerWidget(Screen):
         # name-based, not index-based: new searches insert at the front of
         # the history list and shift every existing entry's index
         try:
+            if not config.plugins.iptvplayer.rememberHistorySelection.value:
+                return
             if not self.isSearchHistoryList():
                 return
             wanted = self._lastHistorySelection
