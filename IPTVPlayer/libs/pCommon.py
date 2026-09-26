@@ -1256,6 +1256,10 @@ class common:
         dictRet = {}
         try:
             sts, downHandler = self.getPage(url, addParams, post_data)
+            if downHandler == None:
+                # the request itself failed (e.g. invalid URL), nothing to read
+                dictRet.update({'sts': False, 'fsize': 0})
+                return dictRet
 
             if addParams.get('ignore_content_length', False):
                 meta = downHandler.info()
