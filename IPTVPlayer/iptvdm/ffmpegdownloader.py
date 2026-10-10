@@ -4,7 +4,9 @@
 #
 #  $Id$
 #
-#  Last Modified: 31.08.2026
+#  Last Modified: 10.10.2026
+#   - _dataAvail(): ffmpeg's lines before the stream mapping and its error lines go to the debug log.
+#  Earlier: 31.08.2026
 #   - _getDownloadSpeed()/_getDuration()/_getStartTime() null-guard their regex
 #     matches (ffmpeg emits "N/A" progress fields that used to raise -> printExc
 #     spam on nearly every line).
@@ -61,6 +63,9 @@ class FFMPEGDownloader(BaseDownloader, SidecarMixin):
     # reached - ffmpeg's segment-summed duration and its final time= often differ
     # by a segment, so an exact match must not be required
     DURATION_COMPLETE_RATIO = 0.97
+
+    # ffmpeg output lines written to the debug log after the stream mapping (before it every line is logged)
+    ERROR_LINE = re.compile(r'(?i)\b(?:error|failed|invalid|forbidden|denied|not found|server returned|unauthorized)\b')
 
     # extra input options for HTTP(S) sources: recover from dropped connections
     # and give up on a stalled socket instead of hanging forever (rw_timeout is in
@@ -271,8 +276,10 @@ class FFMPEGDownloader(BaseDownloader, SidecarMixin):
         self.outData = data.pop()
 
         for item in data:
-            # printDBG("---")
-            # printDBG(item)
+            # what ffmpeg says before the stream mapping and every error line go to the log (the progress lines stay
+            # silent) - without them a failed download left no reason behind
+            if item.strip() and 'frame=' not in item and not item.lstrip().startswith('size=') and (not self.headerReceived or self.ERROR_LINE.search(item)):
+                printDBG('FFMPEGDownloader ffmpeg: %s' % item[:300])
             if not self.headerReceived:
                 if 'Duration:' in item:
                     duration = self._getDuration(item) - self._getStartTime(item)
