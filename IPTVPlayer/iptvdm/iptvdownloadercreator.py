@@ -137,10 +137,14 @@ def DownloaderCreator(url, forDownload=False):
     printDBG("DownloaderCreator downloaderParams[%s]" % downloaderParams)
 
     #################################################
-    # merge:// mit HLS-/DASH-Teilen (getrennte Video- und
-    # Audio-Playlists, z.B. ANACAMS/CAMSODA): nur ffmpeg
-    # laedt beide Playlists und muxt sie; hlsdl/Merge-
-    # Downloader nehmen jeden Teil als ganze Datei.
+    # merge:// with HLS/DASH components (separate
+    # audio+video renditions, e.g. Arte CMAF, Apple
+    # bipbop) must be muxed with ffmpeg regardless of
+    # caller. HLSDownloader's "-a" alt-audio path only
+    # naively interleaves TS packets and yields an
+    # unplayable file for fMP4, and MergeDownloader wgets
+    # each component whole (fine for progressive URLs,
+    # wrong for .m3u8/.mpd playlists).
     #################################################
     mergeNeedsFFmpeg = False
     try:
@@ -239,7 +243,7 @@ def DownloaderCreator(url, forDownload=False):
             return downloader
 
     if mergeNeedsFFmpeg:
-        printDBG("DownloaderCreator: merge:// mit HLS/DASH-Teilen -> FFMPEGDownloader")
+        printDBG("DownloaderCreator: merge:// with HLS/DASH components -> FFMPEGDownloader")
         try:
             return FFMPEGDownloader()
         except Exception:

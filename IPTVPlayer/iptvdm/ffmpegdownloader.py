@@ -5,7 +5,8 @@
 #  $Id$
 #
 #  Last Modified: 10.10.2026
-#   - _dataAvail(): ffmpeg's lines before the stream mapping and its error lines go to the debug log.
+#   - _dataAvail(): ffmpeg's lines before the stream mapping and its error lines go to the debug log
+#     (each distinct error line once, capped, per-packet warnings left out).
 #  Earlier: 31.08.2026
 #   - _getDownloadSpeed()/_getDuration()/_getStartTime() null-guard their regex
 #     matches (ffmpeg emits "N/A" progress fields that used to raise -> printExc
@@ -28,7 +29,7 @@
 #   merge:// hosts), not only Arte.
 #   Earlier on this branch: size= regex matches kB/KB/KiB; _getFileSize()/
 #   _getDownloadSpeed() guarded; TranslateTXT imported; "Utility not found"
-#   translated before %-formatting; per-stderr-line printDBG spam silenced;
+#   translated before %-formatting; progress lines no longer printDBG'd one by one;
 #   E2PrioFix import dropped; raw-string regexes / is-None / PEP8 sync with python3.
 #
 ###################################################
@@ -64,8 +65,12 @@ class FFMPEGDownloader(BaseDownloader, SidecarMixin):
     # by a segment, so an exact match must not be required
     DURATION_COMPLETE_RATIO = 0.97
 
-    # ffmpeg output lines written to the debug log after the stream mapping (before it every line is logged)
-    ERROR_LINE = re.compile(r'(?i)\b(?:error|failed|invalid|forbidden|denied|not found|server returned|unauthorized)\b')
+    # ffmpeg output lines written to the debug log after the stream mapping (before it every line is logged);
+    # ERROR_SPAM lines repeat per packet or per retry and are never logged, each distinct error line is logged
+    # once and at most MAX_ERROR_LINES per download
+    ERROR_LINE = re.compile(r'(?i)\b(?:error|failed|invalid|forbidden|denied|not found|server returned|unauthorized|timed out|refused|unable to|reset by peer)\b')
+    ERROR_SPAM = re.compile(r'(?i)invalid dts|non-monotonous|will reconnect at')
+    MAX_ERROR_LINES = 20
 
     # extra input options for HTTP(S) sources: recover from dropped connections
     # and give up on a stalled socket instead of hanging forever (rw_timeout is in
@@ -90,6 +95,7 @@ class FFMPEGDownloader(BaseDownloader, SidecarMixin):
         self.downloadDuration = 0
         self.liveStream = False
         self.headerReceived = False
+        self.loggedErrors = set()
         self.parseReObj = {}
         self.parseReObj['start_time'] = re.compile(r'\sstart\:\s*?([0-9]+?)\.')
         self.parseReObj['duration'] = re.compile(r'[\s=]([0-9]+?)\:([0-9]+?)\:([0-9]+?)\.')
@@ -264,6 +270,22 @@ class FFMPEGDownloader(BaseDownloader, SidecarMixin):
             printExc()
         return 0
 
+    def _logOutputLine(self, item):
+        if self.ERROR_SPAM.search(item):
+            return
+        if self.ERROR_LINE.search(item):
+            # error lines often start with a long signed URL - keep head and tail so the reason at the end survives
+            if item in self.loggedErrors or len(self.loggedErrors) >= self.MAX_ERROR_LINES:
+                return
+            self.loggedErrors.add(item)
+            if len(item) > 400:
+                item = item[:150] + ' ... ' + item[-150:]
+        elif self.headerReceived:
+            return
+        else:
+            item = item[:300]
+        printDBG('FFMPEGDownloader ffmpeg: %s' % item)
+
     def _dataAvail(self, data):
         if None is data:
             return
@@ -278,8 +300,8 @@ class FFMPEGDownloader(BaseDownloader, SidecarMixin):
         for item in data:
             # what ffmpeg says before the stream mapping and every error line go to the log (the progress lines stay
             # silent) - without them a failed download left no reason behind
-            if item.strip() and 'frame=' not in item and not item.lstrip().startswith('size=') and (not self.headerReceived or self.ERROR_LINE.search(item)):
-                printDBG('FFMPEGDownloader ffmpeg: %s' % item[:300])
+            if item.strip() and 'frame=' not in item and not item.lstrip().startswith('size='):
+                self._logOutputLine(item)
             if not self.headerReceived:
                 if 'Duration:' in item:
                     duration = self._getDuration(item) - self._getStartTime(item)
