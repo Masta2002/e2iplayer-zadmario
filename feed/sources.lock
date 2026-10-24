@@ -1,0 +1,47 @@
+# Sources of the binary feed - sourced by feed/scripts/*.sh.
+# Tarballs are checked against their sha256, git sources are checked out at the
+# given commit. Versions and patches follow the oe-alliance-core 6.0 recipes
+# (see feed/SOURCES.md for the recipe each tool comes from).
+
+# build container (native musl userland, run through qemu-user on the runner)
+ALPINE_IMAGE=alpine:3.22
+
+# hlsdl, cmdwrap, lsdir, f4mdump: oe-mirrors/e2iplayer-deps master
+DEPS_GIT=https://github.com/oe-mirrors/e2iplayer-deps.git
+DEPS_REV=08dff8e3fa0ce62569b60d348a375a0d70a69ba9
+
+# libcurl for hlsdl (static, HTTP/HTTPS only)
+CURL_VERSION=8.23.0
+CURL_URL=https://github.com/curl/curl/releases/download/curl-8_23_0/curl-8.23.0.tar.xz
+CURL_SHA256=8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5
+
+# duktape: meta-oe duktape_2.7.0.bb + oe-alliance duktape_2%.bbappend
+DUKTAPE_VERSION=2.7.0
+DUKTAPE_URL=https://duktape.org/duktape-2.7.0.tar.xz
+DUKTAPE_SHA256=90f8d2fa8b5567c6899830ddef2c03f3c27960b11aca222fa17aa7ac613c2890
+
+# quickjs-ng: oe-alliance quickjs_0.16.2.bb
+QUICKJS_VERSION=0.16.2
+QUICKJS_GIT=https://github.com/quickjs-ng/quickjs.git
+QUICKJS_REV=1ab8676f4b6d6d669baeb5f21790fb9734636a20
+
+# wget: oe-core wget_1.25.0.bb (+ its CVE patches) + oe-alliance wget_1.%.bbappend
+WGET_VERSION=1.25.0
+WGET_URL=https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz
+WGET_SHA256=766e48423e79359ea31e41db9e5c289675947a7fcf2efdcedb726ac9d0da3784
+
+# rtmpdump: meta-multimedia rtmpdump_2.6.bb + oe-alliance rtmpdump_2.%.bbappend
+RTMPDUMP_VERSION=2.6
+RTMPDUMP_GIT=https://git.ffmpeg.org/rtmpdump.git
+RTMPDUMP_REV=6f6bb1353fc84f4cc37138baa99f586750028a01
+
+# uchardet: meta-oe uchardet_0.0.8.bb
+UCHARDET_VERSION=0.0.8
+UCHARDET_URL=https://www.freedesktop.org/software/uchardet/releases/uchardet-0.0.8.tar.xz
+UCHARDET_SHA256=e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0
+
+# curl-impersonate: upstream release binary (glibc >= 2.17, everything else
+# linked in), stripped and packed like the oe-alliance recipe (upx-compress)
+CURLIMP_VERSION=2.2.3
+CURLIMP_URL_armv7=https://github.com/lexiforest/curl-impersonate/releases/download/v2.2.3/curl-impersonate-v2.2.3.arm-linux-gnueabihf.tar.gz
+CURLIMP_SHA256_armv7=bdfba66572546a5331a31e36be99bbbcfa1cbe78cf2175088f2c0ff9d7f6757f
