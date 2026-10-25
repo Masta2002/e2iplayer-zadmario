@@ -64,7 +64,7 @@ echo "$r" | grep -qi 'utf-8' || fail "uchardet"
 log "rtmpdump"
 "$OUT/rtmpdump" --help > rtmp.out 2>&1 || true
 head -n 3 rtmp.out
-grep -q 'RTMPDump v' rtmp.out || fail "rtmpdump --help"
+grep -q "RTMPDump $RTMPDUMP_VERSION, KSV patch" rtmp.out || fail "rtmpdump --help"
 
 log "wget"
 "$OUT/wget" --version > wget.out
