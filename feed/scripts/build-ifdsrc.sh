@@ -13,7 +13,8 @@ fetch_git bincomp "$BINCOMP_GIT" "$BINCOMP_REV"
     # what configure checks, with pkg-config's own reason when it fails
     pkg-config --print-errors --modversion gstreamer-1.0 gstreamer-base-1.0 gstreamer-controller-1.0
     autoreconf --force --install
-    ./configure --disable-static CFLAGS="-Os"
+    # a loadable plugin: none of the -static of the tool builds
+    ./configure --disable-static CFLAGS="-Os" LDFLAGS=""
     make -j"$JOBS"
     "$STRIP" -s src/.libs/libgstifdsrc.so
     install -m 0644 src/.libs/libgstifdsrc.so "$OUT/libgstifdsrc.so"
