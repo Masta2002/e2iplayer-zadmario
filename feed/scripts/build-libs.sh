@@ -39,6 +39,8 @@ fetch_tar curl "$CURL_URL" "$CURL_SHA256"
     make -C lib install
     make -C include install
     # the curl command line tool on the same libcurl: a fallback for images without curl
-    make -j"$JOBS" -C src
+    # (libtool reads -static as "its own libraries static"; fully static is -all-static)
+    LDF=$(sed -n 's/^LDFLAGS = //p' src/Makefile)
+    make -j"$JOBS" -C src LDFLAGS="$LDF -all-static"
     install_bin src/curl
 )
