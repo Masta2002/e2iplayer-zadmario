@@ -1,8 +1,11 @@
 # Loads _subparser from the current directory and parses SRT and TTML.
 # Runs on Python 2.7 and 3.x (the python of the test container).
+import os
 import sys
 
-import _subparser
+# the module lies in the current directory, a script only searches its own one
+sys.path.insert(0, os.getcwd())
+import _subparser  # noqa: E402
 
 print("Python %s, _subparser %s" % (sys.version.split()[0], _subparser.version()))
 assert float(_subparser.version()) >= 0.5, "the setup wants >= 0.5"
