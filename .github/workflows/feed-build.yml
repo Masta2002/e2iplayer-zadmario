@@ -4,7 +4,9 @@ name: feed-build
 # the target architecture. Only runs when the feed itself changes.
 
 on:
+  # branches only: a feed-* tag runs feed-publish.yml, which builds through workflow_call
   push:
+    branches: ['**']
     paths:
       - 'feed/**'
       - '.github/workflows/feed-*.yml'
