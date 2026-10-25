@@ -93,12 +93,21 @@ jobs:
         run: |
           docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }} \
               -e WORK=/tmp/feed-work -e DEBIAN_FRONTEND=noninteractive -v "$PWD:/w" -w /w ${{ matrix.image }} sh -euc '
-                  # Debian releases past their LTS live on archive.debian.org
-                  if ! apt-get -q update > /dev/null 2>&1; then
-                      sed -i -e "s#deb.debian.org#archive.debian.org#" -e "/security/d" -e "/-updates/d" /etc/apt/sources.list
-                      apt-get -q update > /dev/null
+                  # apt output only on failure, then also as an annotation (readable without login)
+                  quiet() {
+                      "$@" > /tmp/apt.log 2>&1 && return 0
+                      cat /tmp/apt.log
+                      printf "::error title=apt failed::%s\n" "$(tail -n 15 /tmp/apt.log | awk "{printf \"%s%%0A\", \$0}")"
+                      return 1
+                  }
+                  # Debian releases past their LTS live on archive.debian.org, with expired Release files
+                  if ! apt-get -q update > /tmp/apt.log 2>&1 || grep -q "^E:" /tmp/apt.log; then
+                      for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
+                          if [ -f "$f" ]; then sed -i -e "s#deb.debian.org#archive.debian.org#" -e "/security/d" -e "/-updates/d" "$f"; fi
+                      done
+                      quiet apt-get -q -o Acquire::Check-Valid-Until=false update
                   fi
-                  apt-get -qy install --no-install-recommends gcc libc6-dev binutils git ca-certificates ${{ matrix.pkg }} > /dev/null
+                  quiet apt-get -qy install --no-install-recommends gcc libc6-dev binutils git ca-certificates ${{ matrix.pkg }}
                   sh feed/scripts/build-all.sh build-subparser'
           sudo chown -R "$(id -u):$(id -g)" out
 
