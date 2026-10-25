@@ -8,6 +8,7 @@ fetch_git rtmpdump "$RTMPDUMP_GIT" "$RTMPDUMP_REV"
 apply_patches "$WORK/src/rtmpdump" "$FEED/patches/rtmpdump"
 (
     cd "$WORK/src/rtmpdump"
-    make -j"$JOBS" SYS=posix CRYPTO=OPENSSL SHARED= XCFLAGS="$CFLAGS" XLDFLAGS="$LDFLAGS" rtmpdump
+    make -j"$JOBS" CROSS_COMPILE="$CROSS" SYS=posix CRYPTO=OPENSSL SHARED= \
+        INC="-I$PREFIX/include" XCFLAGS="$CFLAGS" XLDFLAGS="$LDFLAGS -L$PREFIX/lib" rtmpdump
     install_bin rtmpdump
 )

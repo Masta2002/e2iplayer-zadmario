@@ -1,6 +1,6 @@
 #!/bin/sh
-# Runs the built tools of $OUT on the target architecture (the Alpine build
-# container under qemu-user). curl-impersonate is tested by test-curlimp.sh.
+# Runs the built tools of $OUT on the target architecture (qemu-user through
+# binfmt on the build host). curl-impersonate is tested by test-curlimp.sh.
 . "$(dirname "$0")/common.sh"
 
 T="$WORK/test"
@@ -13,7 +13,7 @@ fail() { echo "::error::$*"; exit 1; }
 log "static, right architecture"
 for b in "$OUT"/*; do
     n=$(basename "$b")
-    [ "$n" = curl-impersonate ] && continue
+    case "$n" in curl-impersonate|SHA256SUMS|index.json) continue ;; esac
     readelf -lW "$b" | grep -q 'program interpreter' && fail "$n is not static"
     case "$PLAT" in
         armv7)

@@ -8,6 +8,6 @@ fetch_tar duktape "$DUKTAPE_URL" "$DUKTAPE_SHA256"
 apply_patches "$WORK/src/duktape" "$FEED/patches/duktape"
 (
     cd "$WORK/src/duktape"
-    make -f Makefile.cmdline CC=gcc CCLIBS="-lm $LDFLAGS"
+    make -f Makefile.cmdline CC="$CC" CCLIBS="-lm $LDFLAGS"
     install_bin duk
 )

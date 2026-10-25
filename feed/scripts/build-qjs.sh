@@ -6,8 +6,8 @@ log "quickjs-ng $QUICKJS_VERSION"
 fetch_git quickjs "$QUICKJS_GIT" "$QUICKJS_REV"
 (
     cd "$WORK/src/quickjs"
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
-    cmake --build build --target qjs -j"$JOBS"
+    cmake_cross . build -DBUILD_SHARED_LIBS=OFF
+    # target qjs is the library, qjs_exe the interpreter (output name qjs)
+    cmake --build build --target qjs_exe -j"$JOBS"
     install_bin build/qjs
 )

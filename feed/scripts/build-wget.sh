@@ -14,10 +14,10 @@ apply_patches "$WORK/src/wget" "$FEED/patches/wget"
     sleep 1
     touch configure
     find . -name Makefile.in -exec touch {} +
-    PKG_CONFIG="pkg-config --static" ./configure --prefix=/usr --sysconfdir=/etc \
+    PKG_CONFIG="pkg-config --static" ./configure --host="$HOST" --prefix=/usr --sysconfdir=/etc \
         --with-ssl=openssl --with-zlib --disable-nls --disable-iri --disable-pcre \
         --disable-pcre2 --disable-ntlm --disable-rpath --without-libpsl \
-        --without-libuuid --without-metalink --without-included-regex
+        --without-libuuid --without-metalink
     make -j"$JOBS"
     install_bin src/wget
 )

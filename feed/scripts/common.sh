@@ -10,6 +10,26 @@ WORK=${WORK:-/tmp/feed-work}
 OUT=${OUT:-$FEED/../out/$PLAT}
 JOBS=$(nproc 2>/dev/null || echo 2)
 
+# cross toolchain of the platform (unpacked by toolchain.sh) and the prefix the
+# static libraries (zlib, OpenSSL, libcurl) are installed to
+TC="$WORK/toolchain-$PLAT"
+PREFIX="$WORK/prefix-$PLAT"
+eval "OPENSSL_TARGET=\${OPENSSL_TARGET_$PLAT}"
+eval "CMAKE_PROCESSOR=\${CMAKE_PROCESSOR_$PLAT}"
+if [ -d "$TC/bin" ]; then
+    _gcc=$(ls "$TC"/bin/*-linux-*-gcc | head -n 1)
+    HOST=$(basename "$_gcc" -gcc)
+    CROSS="$TC/bin/$HOST-"
+    CC="${CROSS}gcc"
+    CXX="${CROSS}g++"
+    AR="${CROSS}ar"
+    RANLIB="${CROSS}ranlib"
+    STRIP="${CROSS}strip"
+    export CC CXX AR RANLIB STRIP
+fi
+export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
+export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
+
 # every tool is linked statically against musl: it runs on any image of the
 # platform, whatever libc / OpenSSL / libcurl the image has
 CFLAGS="-Os -ffunction-sections -fdata-sections"
@@ -20,14 +40,19 @@ mkdir -p "$WORK/dl" "$WORK/src" "$OUT"
 
 log() { printf '\n=== %s\n' "$*"; }
 
+# download <url> <sha256>: into $WORK/dl (cached between runs), checked
+download() {
+    _f="$WORK/dl/$(basename "$1")"
+    [ -f "$_f" ] || curl -fsSL --retry 3 -o "$_f" "$1"
+    echo "$2  $_f" | sha256sum -c -
+}
+
 # fetch_tar <name> <url> <sha256>: download, check, unpack to $WORK/src/<name>
 fetch_tar() {
-    _f="$WORK/dl/$(basename "$2")"
-    [ -f "$_f" ] || curl -fsSL --retry 3 -o "$_f" "$2"
-    echo "$3  $_f" | sha256sum -c -
+    download "$2" "$3"
     rm -rf "$WORK/src/$1"
     mkdir -p "$WORK/src/$1"
-    tar -xf "$_f" -C "$WORK/src/$1" --strip-components=1
+    tar -xf "$WORK/dl/$(basename "$2")" -C "$WORK/src/$1" --strip-components=1
 }
 
 # fetch_git <name> <url> <commit>: check out exactly that commit to $WORK/src/<name>
@@ -49,9 +74,18 @@ apply_patches() {
     done
 }
 
+# cmake_cross <srcdir> <builddir> [args]: configure a cmake project for the target
+cmake_cross() {
+    _s=$1 _b=$2
+    shift 2
+    cmake -S "$_s" -B "$_b" -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR="$CMAKE_PROCESSOR" \
+        -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_BUILD_TYPE=MinSizeRel \
+        -DCMAKE_FIND_ROOT_PATH="$PREFIX" -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" "$@"
+}
+
 # install_bin <file> [name]: strip and copy to $OUT
 install_bin() {
-    strip -s "$1"
+    "$STRIP" -s "$1"
     install -m 0755 "$1" "$OUT/${2:-$(basename "$1")}"
     ls -l "$OUT/${2:-$(basename "$1")}"
 }

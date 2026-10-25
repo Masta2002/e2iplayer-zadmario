@@ -7,8 +7,7 @@ fetch_tar uchardet "$UCHARDET_URL" "$UCHARDET_SHA256"
 apply_patches "$WORK/src/uchardet" "$FEED/patches/uchardet"
 (
     cd "$WORK/src/uchardet"
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS=OFF \
-        -DBUILD_STATIC=ON -DBUILD_BINARY=ON -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
+    cmake_cross . build -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC=ON -DBUILD_BINARY=ON
     cmake --build build -j"$JOBS"
     install_bin build/src/tools/uchardet
 )

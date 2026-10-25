@@ -3,17 +3,29 @@
 # given commit. Versions and patches follow the oe-alliance-core 6.0 recipes
 # (see feed/SOURCES.md for the recipe each tool comes from).
 
-# build container (native musl userland, run through qemu-user on the runner)
-ALPINE_IMAGE=alpine:3.22
+# cross toolchains (Bootlin, musl), per platform
+TOOLCHAIN_URL_armv7=https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs/armv7-eabihf--musl--stable-2026.08-1.tar.xz
+TOOLCHAIN_SHA256_armv7=9147bafae4aa272321a3c6440d04d83b7e23411b2d344f875541d84c4444ba9b
+OPENSSL_TARGET_armv7=linux-armv4
+CMAKE_PROCESSOR_armv7=arm
 
-# hlsdl, cmdwrap, lsdir, f4mdump: oe-mirrors/e2iplayer-deps master
-DEPS_GIT=https://github.com/oe-mirrors/e2iplayer-deps.git
-DEPS_REV=08dff8e3fa0ce62569b60d348a375a0d70a69ba9
+# libraries linked into the tools
+ZLIB_VERSION=1.3.2
+ZLIB_URL=https://github.com/madler/zlib/releases/download/v1.3.2/zlib-1.3.2.tar.gz
+ZLIB_SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+
+OPENSSL_VERSION=3.5.9
+OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz
+OPENSSL_SHA256=603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
 
 # libcurl for hlsdl (static, HTTP/HTTPS only)
 CURL_VERSION=8.23.0
 CURL_URL=https://github.com/curl/curl/releases/download/curl-8_23_0/curl-8.23.0.tar.xz
 CURL_SHA256=8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5
+
+# hlsdl, cmdwrap, lsdir, f4mdump: oe-mirrors/e2iplayer-deps master
+DEPS_GIT=https://github.com/oe-mirrors/e2iplayer-deps.git
+DEPS_REV=08dff8e3fa0ce62569b60d348a375a0d70a69ba9
 
 # duktape: meta-oe duktape_2.7.0.bb + oe-alliance duktape_2%.bbappend
 DUKTAPE_VERSION=2.7.0

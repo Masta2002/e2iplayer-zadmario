@@ -22,38 +22,40 @@ jobs:
   build:
     name: ${{ matrix.plat }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - plat: armv7
-            docker: linux/arm/v7
-            strip: arm-linux-gnueabihf-strip
-            binutils: binutils-arm-linux-gnueabihf
+            qemu: arm
+    env:
+      PLAT: ${{ matrix.plat }}
+      WORK: ${{ github.workspace }}/../feed-work
     steps:
       - uses: actions/checkout@v7
 
-      - uses: docker/setup-qemu-action@v3
+      # runs the target binaries in the tests
+      - uses: docker/setup-qemu-action@v4
+        with:
+          platforms: ${{ matrix.qemu }}
 
-      - name: Build and test in Alpine (${{ matrix.docker }})
-        run: |
-          . feed/sources.lock
-          docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} \
-              -v "$PWD:/w" -w /w "$ALPINE_IMAGE" sh feed/scripts/container.sh
-          sudo chown -R "$(id -u):$(id -g)" out
+      # toolchain and source tarballs; everything in it is checked against sources.lock
+      - uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/../feed-work/dl
+          key: feed-dl-${{ matrix.plat }}-${{ hashFiles('feed/sources.lock') }}
+          restore-keys: feed-dl-${{ matrix.plat }}-
 
-      - name: curl-impersonate
+      - name: Host tools
         run: |
           sudo apt-get -q update
-          sudo apt-get -y install upx-ucl ${{ matrix.binutils }}
-          PLAT=${{ matrix.plat }} STRIP=${{ matrix.strip }} sh feed/scripts/build-curlimp.sh
-          PLAT=${{ matrix.plat }} sh feed/scripts/test-curlimp.sh
+          sudo apt-get -y install upx-ucl
 
-      - name: SHA256SUMS, index.json
-        run: PLAT=${{ matrix.plat }} sh feed/scripts/manifest.sh
+      - name: Build and test
+        run: sh feed/scripts/build-all.sh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: feed-${{ matrix.plat }}
           path: out/${{ matrix.plat }}
