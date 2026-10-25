@@ -93,7 +93,11 @@ jobs:
         run: |
           docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }} \
               -e WORK=/tmp/feed-work -e DEBIAN_FRONTEND=noninteractive -v "$PWD:/w" -w /w ${{ matrix.image }} sh -euc '
-                  apt-get -q update > /dev/null
+                  # Debian releases past their LTS live on archive.debian.org
+                  if ! apt-get -q update > /dev/null 2>&1; then
+                      sed -i -e "s#deb.debian.org#archive.debian.org#" -e "/security/d" -e "/-updates/d" /etc/apt/sources.list
+                      apt-get -q update > /dev/null
+                  fi
                   apt-get -qy install --no-install-recommends gcc libc6-dev binutils git ca-certificates ${{ matrix.pkg }} > /dev/null
                   sh feed/scripts/build-all.sh build-subparser'
           sudo chown -R "$(id -u):$(id -g)" out
