@@ -26,12 +26,13 @@ if [ -d "$TC/bin" ]; then
     RANLIB="${CROSS}ranlib"
     STRIP="${CROSS}strip"
     export CC CXX AR RANLIB STRIP
+    # only the static libraries of the prefix, never the build host's
+    export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
+    export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 fi
 # native build (inside a container of the target platform)
 CC=${CC:-gcc}
 STRIP=${STRIP:-strip}
-export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
-export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 
 # every tool is linked statically against musl: it runs on any image of the
 # platform, whatever libc / OpenSSL / libcurl the image has
