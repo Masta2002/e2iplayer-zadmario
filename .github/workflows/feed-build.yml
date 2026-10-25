@@ -1,7 +1,7 @@
 name: feed-build
 
-# Builds the static helper binaries of the feed (see feed/SOURCES.md) and tests
-# them on the target architecture. Only runs when the feed itself changes.
+# Builds the helper binaries of the feed (see feed/SOURCES.md) and tests them on
+# the target architecture. Only runs when the feed itself changes.
 
 on:
   push:
@@ -19,8 +19,9 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: ${{ matrix.plat }}
+  # static tools, cross compiled with a musl toolchain
+  tools:
+    name: tools ${{ matrix.plat }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -54,6 +55,76 @@ jobs:
 
       - name: Build and test
         run: sh feed/scripts/build-all.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: part-${{ matrix.plat }}-tools
+          path: out/${{ matrix.plat }}
+          if-no-files-found: error
+
+  # _subparser.so is a Python module: built natively in a container of the
+  # platform whose glibc is not newer than the images' one, per Python version
+  subparser:
+    name: subparser ${{ matrix.plat }} py${{ matrix.py }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - plat: armv7
+            docker: linux/arm/v7
+            py: '2.7'
+            image: debian:bullseye-slim      # glibc 2.31
+            pkg: python2.7-dev
+          - plat: armv7
+            docker: linux/arm/v7
+            py: '3.12'
+            image: ubuntu:24.04              # glibc 2.39
+            pkg: python3.12-dev
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm
+
+      - name: Build and test in ${{ matrix.image }}
+        run: |
+          docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }} \
+              -e WORK=/tmp/feed-work -e DEBIAN_FRONTEND=noninteractive -v "$PWD:/w" -w /w ${{ matrix.image }} sh -euc '
+                  apt-get -q update > /dev/null
+                  apt-get -qy install --no-install-recommends gcc libc6-dev binutils git ca-certificates ${{ matrix.pkg }} > /dev/null
+                  sh feed/scripts/build-all.sh build-subparser'
+          sudo chown -R "$(id -u):$(id -g)" out
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: part-${{ matrix.plat }}-subparser-py${{ matrix.py }}
+          path: out/${{ matrix.plat }}
+          if-no-files-found: error
+
+  # one artifact per platform with SHA256SUMS and index.json
+  feed:
+    name: feed ${{ matrix.plat }}
+    needs: [tools, subparser]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        plat: [armv7]
+    env:
+      PLAT: ${{ matrix.plat }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: part-${{ matrix.plat }}-*
+          path: out/${{ matrix.plat }}
+          merge-multiple: true
+
+      - name: SHA256SUMS, index.json
+        run: sh feed/scripts/manifest.sh
 
       - uses: actions/upload-artifact@v7
         with:

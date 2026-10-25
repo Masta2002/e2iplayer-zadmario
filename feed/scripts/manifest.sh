@@ -28,7 +28,10 @@ for name in sorted(os.listdir('.')):
     if name in ('SHA256SUMS', 'index.json'):
         continue
     data = open(name, 'rb').read()
-    files[name] = {'version': version.get(name, ''), 'size': len(data),
+    ver = version.get(name, '')
+    if name.startswith('_subparser.so_py'):
+        ver = 'e2iplayer-deps %s, Python %s' % (src['DEPS_REV'][:7], name[len('_subparser.so_py'):])
+    files[name] = {'version': ver, 'size': len(data),
                    'sha256': hashlib.sha256(data).hexdigest()}
 json.dump({'platform': plat, 'commit': commit, 'date': time.strftime('%Y-%m-%d'),
            'files': files}, open('index.json', 'w'), indent=1, sort_keys=True)

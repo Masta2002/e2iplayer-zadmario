@@ -13,6 +13,7 @@ libc, OpenSSL and libcurl of the image.
 | `lsdir` | e2iplayer-deps `lsdir/` | same recipe, `SOURCE_FILES3` | - | GPL-2.0 |
 | `cmdwrap` | e2iplayer-deps `cmdwrap/` | same recipe, `SOURCE_FILES4` | - | GPL-2.0 |
 | `f4mdump` | e2iplayer-deps `f4mdump/` (with librtmp 2.6, TinyXML-2) + OpenSSL, zlib | same recipe, `SOURCE_FILES5` + `SOURCE_FILES6` | - | GPL-2.0, LGPL-2.1 (librtmp), Zlib (TinyXML-2) |
+| `_subparser.so_py<X.Y>` | e2iplayer-deps `e2isubparser/` (with Expat) | same recipe, `SOURCE_FILES1`; built per Python version in a Debian/Ubuntu container of the platform (glibc 2.31 for 2.7, 2.39 for 3.12), libpython not linked | - | GPL-2.0, MIT (Expat), LGPL-2.1 (VLC/FFmpeg parts) |
 | `duk` | duktape 2.7.0 | meta-oe `duktape_2.7.0.bb` + oe-alliance `duktape_2%.bbappend` (`Makefile.cmdline`) | `duktape/iptvplayer.patch` (oe-alliance) | MIT |
 | `qjs` | quickjs-ng at the oe-alliance SRCREV | oe-alliance `quickjs_0.16.2.bb` (cmake, `BUILD_SHARED_LIBS=OFF`) | - | MIT |
 | `wget` | GNU wget 1.25.0 + OpenSSL, zlib | oe-core `wget_1.25.0.bb` + oe-alliance `wget_1.%.bbappend` (`--with-ssl=openssl`) | `wget/1x`, `2x` (oe-core: reproducibility, CVE fixes), `wget/3x` (oe-alliance: short `--version`, OpenSSL 4) | GPL-3.0-or-later |

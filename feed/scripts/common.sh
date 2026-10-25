@@ -27,6 +27,9 @@ if [ -d "$TC/bin" ]; then
     STRIP="${CROSS}strip"
     export CC CXX AR RANLIB STRIP
 fi
+# native build (inside a container of the target platform)
+CC=${CC:-gcc}
+STRIP=${STRIP:-strip}
 export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig"
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig"
 
