@@ -21,7 +21,7 @@ libc, OpenSSL and libcurl of the image.
 | `wget` | GNU wget 1.25.0 + OpenSSL, zlib | oe-core `wget_1.25.0.bb` + oe-alliance `wget_1.%.bbappend` (`--with-ssl=openssl`) | `wget/1x`, `2x` (oe-core: reproducibility, CVE fixes), `wget/3x` (oe-alliance: short `--version`, OpenSSL 4) | GPL-3.0-or-later |
 | `rtmpdump` | rtmpdump 2.6 (git.ffmpeg.org) + OpenSSL, zlib | meta-multimedia `rtmpdump_2.6.bb` + oe-alliance `rtmpdump_2.%.bbappend`; OpenSSL instead of GnuTLS | `rtmpdump/0001..0003` (oe-alliance: KSV 2015-12-15, OpenSSL fix, movecast) | GPL-2.0, LGPL-2.1 (librtmp) |
 | `uchardet` | uchardet 0.0.8 | meta-oe `uchardet_0.0.8.bb` | `uchardet/0001` (meta-oe: cmake 4) | MPL-1.1 / GPL-2.0 / LGPL-2.1 |
-| `curl-impersonate` | lexiforest/curl-impersonate release binary (glibc >= 2.17) | oe-alliance `curl-impersonate_2.2.3.bb` (same version; stripped + UPX `--lzma` like `upx-compress`) | - | MIT, curl, BoringSSL (ISC/OpenSSL), nghttp2/ngtcp2/nghttp3 (MIT), c-ares (MIT), brotli (MIT), zstd (BSD), Zlib |
+| `curl-impersonate` | lexiforest/curl-impersonate release binary (dynamic against glibc; runs on VTi 16 / glibc 2.40, crashes on VTi 15 / glibc 2.21 although it only names glibc 2.17 symbols - images that old get no curl-impersonate) | oe-alliance `curl-impersonate_2.2.3.bb` (same version; stripped + UPX `--lzma` like `upx-compress`) | - | MIT, curl, BoringSSL (ISC/OpenSSL), nghttp2/ngtcp2/nghttp3 (MIT), c-ares (MIT), brotli (MIT), zstd (BSD), Zlib |
 
 ## Platforms
 
