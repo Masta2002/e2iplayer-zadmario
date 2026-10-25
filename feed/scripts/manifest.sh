@@ -22,6 +22,7 @@ version = {
     'duk': src['DUKTAPE_VERSION'], 'qjs': src['QUICKJS_VERSION'], 'wget': src['WGET_VERSION'],
     'rtmpdump': src['RTMPDUMP_VERSION'], 'uchardet': src['UCHARDET_VERSION'],
     'curl-impersonate': src['CURLIMP_VERSION'],
+    'curl': src['CURL_VERSION'],
     'libgstifdsrc.so': 'iptvplayer-bin-components ' + src['BINCOMP_REV'][:7],
 }
 files = {}

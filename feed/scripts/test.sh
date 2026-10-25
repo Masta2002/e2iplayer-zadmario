@@ -74,6 +74,16 @@ grep -q '+ssl/openssl' wget.out || fail "wget not with openssl"
 "$OUT/wget" -q -O gnu.html https://ftp.gnu.org/gnu/wget/ || fail "wget https download"
 grep -q 'wget-1.25.0.tar.gz' gnu.html || fail "wget downloaded something else"
 
+log "curl"
+"$OUT/curl" --version > curl.out
+head -n 3 curl.out
+grep -q "^curl $CURL_VERSION " curl.out || fail "curl version"
+grep -q 'OpenSSL' curl.out || fail "curl not with OpenSSL"
+grep -q 'HTTPS' curl.out || fail "curl without HTTPS"
+# certificate check with the CA bundle path built in (same as on the images)
+"$OUT/curl" -fsS -o curl.html https://ftp.gnu.org/gnu/wget/ || fail "curl https download"
+grep -q 'wget-1.25.0.tar.gz' curl.html || fail "curl downloaded something else"
+
 log "f4mdump"
 "$OUT/f4mdump" 2>&1 | grep -qE '^F4MDump v[0-9]' || fail "f4mdump version"
 mkdir -p hds

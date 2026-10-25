@@ -22,7 +22,8 @@ fetch_tar openssl "$OPENSSL_URL" "$OPENSSL_SHA256"
     make install_dev
 )
 
-# hlsdl switches peer verification off; the CA paths are the ones of OE images
+# libcurl for hlsdl and the curl tool: HTTP/HTTPS, OpenSSL, zlib. hlsdl switches
+# peer verification off; the CA paths are the ones of OE images
 log "libcurl $CURL_VERSION"
 fetch_tar curl "$CURL_URL" "$CURL_SHA256"
 (
@@ -37,4 +38,7 @@ fetch_tar curl "$CURL_URL" "$CURL_SHA256"
     make -j"$JOBS" -C lib
     make -C lib install
     make -C include install
+    # the curl command line tool on the same libcurl: a fallback for images without curl
+    make -j"$JOBS" -C src
+    install_bin src/curl
 )

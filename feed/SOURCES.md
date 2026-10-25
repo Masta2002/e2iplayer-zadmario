@@ -10,6 +10,7 @@ libc, OpenSSL and libcurl of the image.
 | File | Source | Recipe used as template | Patches | License |
 |---|---|---|---|---|
 | `hlsdl` | oe-mirrors/e2iplayer-deps `hlsdl/` + curl (HTTP/HTTPS only), OpenSSL, zlib | oe-alliance `enigma2-plugin-extensions-e2iplayer-deps.bb` (`SOURCE_FILES2`), without `-DWITH_FFMPEG -lav*` (unused by the code) | - | MIT (hlsdl), curl, Apache-2.0 (OpenSSL), Zlib |
+| `curl` | curl (HTTP/HTTPS only) + OpenSSL, zlib - the same static libcurl hlsdl uses | oe-core `curl` (feature set reduced to what the plugin needs); CA paths of OE images | - | curl, Apache-2.0 (OpenSSL), Zlib |
 | `lsdir` | e2iplayer-deps `lsdir/` | same recipe, `SOURCE_FILES3` | - | GPL-2.0 |
 | `cmdwrap` | e2iplayer-deps `cmdwrap/` | same recipe, `SOURCE_FILES4` | - | GPL-2.0 |
 | `f4mdump` | e2iplayer-deps `f4mdump/` (with librtmp 2.6, TinyXML-2) + OpenSSL, zlib | same recipe, `SOURCE_FILES5` + `SOURCE_FILES6` | - | GPL-2.0, LGPL-2.1 (librtmp), Zlib (TinyXML-2) |
