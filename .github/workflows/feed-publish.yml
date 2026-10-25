@@ -1,0 +1,127 @@
+name: feed-publish
+
+# Builds the whole feed, publishes it on GitHub Pages
+#   https://<owner>.github.io/<repo>/resources/bin/<platform>/<file>
+# and keeps every published state as a release (binaries + source archive).
+# Runs for a tag feed-YYYY.MM.DD[.N] or by hand (then only Pages, no release).
+# Pages keeps only the last deploy, so every publish carries the complete feed.
+
+on:
+  push:
+    tags:
+      - 'feed-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feed-publish
+  cancel-in-progress: false
+
+jobs:
+  build:
+    uses: ./.github/workflows/feed-build.yml
+
+  site:
+    needs: build
+    runs-on: ubuntu-24.04
+    env:
+      WORK: ${{ github.workspace }}/../feed-work
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: feed-*
+          path: dist
+
+      - name: Pages site
+        run: |
+          set -eu
+          mkdir -p site/resources/bin
+          for d in dist/feed-*; do
+              plat=${d#dist/feed-}
+              cp -r "$d" "site/resources/bin/$plat"
+              (cd "site/resources/bin/$plat" && sha256sum -c SHA256SUMS)
+          done
+          cp feed/SOURCES.md site/
+          touch site/.nojekyll
+          python3 - "${GITHUB_REF_NAME}" "${GITHUB_SHA}" <<'EOF'
+          import html, json, os, sys
+          ref, sha = sys.argv[1:3]
+          base = 'site/resources/bin'
+          plats = sorted(os.listdir(base))
+          index = {'ref': ref, 'commit': sha, 'platforms': {}}
+          rows = []
+          for p in plats:
+              info = json.load(open(os.path.join(base, p, 'index.json')))
+              index['platforms'][p] = info
+              for name, f in sorted(info['files'].items()):
+                  rows.append('<tr><td>%s</td><td><a href="resources/bin/%s/%s">%s</a></td><td>%s</td><td><code>%s</code></td></tr>'
+                              % (p, p, html.escape(name), html.escape(name), html.escape(f['version']), f['sha256']))
+          json.dump(index, open('site/resources/index.json', 'w'), indent=1, sort_keys=True)
+          open('site/index.html', 'w').write(
+              '<!doctype html><meta charset="utf-8"><title>E2iPlayer binary feed</title>'
+              '<h1>E2iPlayer binary feed</h1><p>%s (%s) - built from <a href="SOURCES.md">these sources</a>; '
+              'checksums in resources/bin/&lt;platform&gt;/SHA256SUMS</p>'
+              '<table><tr><th>platform</th><th>file</th><th>version</th><th>sha256</th></tr>%s</table>'
+              % (html.escape(ref), sha[:8], ''.join(rows)))
+          EOF
+          find site -type f | sort
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - name: Source archive
+        if: startsWith(github.ref, 'refs/tags/feed-')
+        run: sh feed/scripts/sources-tarball.sh "${GITHUB_REF_NAME}" release
+
+      - uses: actions/upload-artifact@v7
+        if: startsWith(github.ref, 'refs/tags/feed-')
+        with:
+          name: release-files
+          path: |
+            release
+            dist
+
+  deploy:
+    needs: site
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  release:
+    needs: [site, deploy]
+    if: startsWith(github.ref, 'refs/tags/feed-')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-files
+
+      - name: Release ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          mkdir assets
+          for d in dist/feed-*; do
+              plat=${d#dist/feed-}
+              for f in "$d"/*; do cp "$f" "assets/$plat-$(basename "$f")"; done
+          done
+          cp release/sources-*.tar.xz assets/
+          ls -l assets
+          gh release create "$GITHUB_REF_NAME" assets/* --repo "$GITHUB_REPOSITORY" \
+              --title "Binary feed $GITHUB_REF_NAME" \
+              --notes "Binaries of the feed published on Pages, file names prefixed with the platform; sources-$GITHUB_REF_NAME.tar.xz holds every source and patch they are built from (see SOURCES.md)."
