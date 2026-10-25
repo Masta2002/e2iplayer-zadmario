@@ -82,13 +82,39 @@ jobs:
             py: '2.7'
             image: debian:bullseye-slim      # glibc 2.31
             pkgs: gcc libc6-dev binutils git ca-certificates python2.7-dev
+            test: ''
+          - plat: armv7
+            docker: linux/arm/v7
+            part: subparser-py3.11
+            step: build-subparser
+            py: '3.11'
+            image: debian:bullseye-slim      # glibc 2.31, headers of the pinned CPython
+            pkgs: gcc libc6-dev binutils make git ca-certificates curl xz-utils
+            test: python:3.11-slim
           - plat: armv7
             docker: linux/arm/v7
             part: subparser-py3.12
             step: build-subparser
             py: '3.12'
-            image: ubuntu:24.04              # glibc 2.39
-            pkgs: gcc libc6-dev binutils git ca-certificates python3.12-dev
+            image: debian:bullseye-slim      # glibc 2.31, headers of the pinned CPython
+            pkgs: gcc libc6-dev binutils make git ca-certificates curl xz-utils
+            test: python:3.12-slim
+          - plat: armv7
+            docker: linux/arm/v7
+            part: subparser-py3.13
+            step: build-subparser
+            py: '3.13'
+            image: debian:bullseye-slim      # glibc 2.31, headers of the pinned CPython
+            pkgs: gcc libc6-dev binutils make git ca-certificates curl xz-utils
+            test: python:3.13-slim
+          - plat: armv7
+            docker: linux/arm/v7
+            part: subparser-py3.14
+            step: build-subparser
+            py: '3.14'
+            image: debian:bullseye-slim      # glibc 2.31, headers of the pinned CPython
+            pkgs: gcc libc6-dev binutils make git ca-certificates curl xz-utils
+            test: python:3.14-slim
           - plat: armv7
             docker: linux/arm/v7
             part: gst-ifdsrc
@@ -98,6 +124,7 @@ jobs:
             pkgs: >-
               gcc libc6-dev binutils make autoconf automake libtool pkg-config git ca-certificates
               libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools
+            test: ''
     steps:
       - uses: actions/checkout@v7
 
@@ -105,10 +132,16 @@ jobs:
         with:
           platforms: arm
 
-      - name: Build and test in ${{ matrix.image }}
+      - name: Build in ${{ matrix.image }}
         run: |
           docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }}               -e WORK=/tmp/feed-work -v "$PWD:/w" -w /w ${{ matrix.image }}               sh -euc 'sh feed/scripts/apt-install.sh ${{ matrix.pkgs }} && sh feed/scripts/build-all.sh ${{ matrix.step }}'
           sudo chown -R "$(id -u):$(id -g)" out
+
+      # a module built against headers only is loaded by the real Python of that version
+      - name: Test in ${{ matrix.test }}
+        if: matrix.test != ''
+        run: |
+          docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }}               -v "$PWD:/w" -w /w ${{ matrix.test }} sh feed/scripts/build-all.sh test-subparser
 
       - uses: actions/upload-artifact@v7
         with:
