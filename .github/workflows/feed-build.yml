@@ -62,26 +62,40 @@ jobs:
           path: out/${{ matrix.plat }}
           if-no-files-found: error
 
-  # _subparser.so is a Python module: built natively in a container of the
-  # platform whose glibc is not newer than the images' one, per Python version
-  subparser:
-    name: subparser ${{ matrix.plat }} py${{ matrix.py }}
+  # parts that load into a program of the image and so cannot be static: built
+  # natively in a container of the platform whose glibc (and GStreamer) is not
+  # newer than the images' one - _subparser.so per Python version, gst-ifdsrc
+  native:
+    name: ${{ matrix.part }} ${{ matrix.plat }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
         include:
           - plat: armv7
             docker: linux/arm/v7
+            part: subparser-py2.7
+            step: build-subparser
             py: '2.7'
             image: debian:bullseye-slim      # glibc 2.31
-            pkg: python2.7-dev
+            pkgs: gcc libc6-dev binutils git ca-certificates python2.7-dev
           - plat: armv7
             docker: linux/arm/v7
+            part: subparser-py3.12
+            step: build-subparser
             py: '3.12'
             image: ubuntu:24.04              # glibc 2.39
-            pkg: python3.12-dev
+            pkgs: gcc libc6-dev binutils git ca-certificates python3.12-dev
+          - plat: armv7
+            docker: linux/arm/v7
+            part: gst-ifdsrc
+            step: build-ifdsrc
+            py: ''
+            image: debian:bullseye-slim      # glibc 2.31, GStreamer 1.18
+            pkgs: >-
+              gcc libc6-dev binutils make autoconf automake libtool pkg-config git ca-certificates
+              libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools
     steps:
       - uses: actions/checkout@v7
 
@@ -91,36 +105,19 @@ jobs:
 
       - name: Build and test in ${{ matrix.image }}
         run: |
-          docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }} \
-              -e WORK=/tmp/feed-work -e DEBIAN_FRONTEND=noninteractive -v "$PWD:/w" -w /w ${{ matrix.image }} sh -euc '
-                  # apt output only on failure, then also as an annotation (readable without login)
-                  quiet() {
-                      "$@" > /tmp/apt.log 2>&1 && return 0
-                      cat /tmp/apt.log
-                      printf "::error title=apt failed::%s\n" "$(tail -n 15 /tmp/apt.log | awk "{printf \"%s%%0A\", \$0}")"
-                      return 1
-                  }
-                  # Debian releases past their LTS live on archive.debian.org, with expired Release files
-                  if ! apt-get -q update > /tmp/apt.log 2>&1 || grep -q "^E:" /tmp/apt.log; then
-                      for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
-                          if [ -f "$f" ]; then sed -i -e "s#deb.debian.org#archive.debian.org#" -e "/security/d" -e "/-updates/d" "$f"; fi
-                      done
-                      quiet apt-get -q -o Acquire::Check-Valid-Until=false update
-                  fi
-                  quiet apt-get -qy install --no-install-recommends gcc libc6-dev binutils git ca-certificates ${{ matrix.pkg }}
-                  sh feed/scripts/build-all.sh build-subparser'
+          docker run --rm --platform ${{ matrix.docker }} -e PLAT=${{ matrix.plat }} -e PYVER=${{ matrix.py }}               -e WORK=/tmp/feed-work -v "$PWD:/w" -w /w ${{ matrix.image }}               sh -euc 'sh feed/scripts/apt-install.sh ${{ matrix.pkgs }} && sh feed/scripts/build-all.sh ${{ matrix.step }}'
           sudo chown -R "$(id -u):$(id -g)" out
 
       - uses: actions/upload-artifact@v7
         with:
-          name: part-${{ matrix.plat }}-subparser-py${{ matrix.py }}
+          name: part-${{ matrix.plat }}-${{ matrix.part }}
           path: out/${{ matrix.plat }}
           if-no-files-found: error
 
   # one artifact per platform with SHA256SUMS and index.json
   feed:
     name: feed ${{ matrix.plat }}
-    needs: [tools, subparser]
+    needs: [tools, native]
     runs-on: ubuntu-24.04
     strategy:
       matrix:

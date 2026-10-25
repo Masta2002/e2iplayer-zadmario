@@ -27,6 +27,10 @@ CURL_SHA256=8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5
 DEPS_GIT=https://github.com/oe-mirrors/e2iplayer-deps.git
 DEPS_REV=08dff8e3fa0ce62569b60d348a375a0d70a69ba9
 
+# gst-ifdsrc: oe-mirrors/iptvplayer-bin-components master (oe-alliance gst-ifdsrc_git.bb)
+BINCOMP_GIT=https://github.com/oe-mirrors/iptvplayer-bin-components.git
+BINCOMP_REV=b998ab93ca7f0e74df30a1a0142c5f01ef37a723
+
 # duktape: meta-oe duktape_2.7.0.bb + oe-alliance duktape_2%.bbappend
 DUKTAPE_VERSION=2.7.0
 DUKTAPE_URL=https://duktape.org/duktape-2.7.0.tar.xz
