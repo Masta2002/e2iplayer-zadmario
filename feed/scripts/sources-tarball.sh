@@ -2,12 +2,12 @@
 # sources-<name>.tar.xz: every source the feed is built from (the pinned tarballs,
 # the git sources at their commit) plus feed/ itself (scripts, patches, lock files).
 # This is the source offer of a release: it stays even when an upstream vanishes.
-# Usage: sources-tarball.sh <name> <output dir>
+# Usage: sources-tarball.sh [name] [output dir]  (defaults: the GitHub Actions ref, release)
 PLAT=${PLAT:-armv7}
 . "$(dirname "$0")/common.sh"
 
-NAME=${1:?name}
-DEST=${2:?output dir}
+NAME=${1:-${GITHUB_REF_NAME:?name}}
+DEST=${2:-release}
 S="$WORK/sources-$NAME"
 rm -rf "$S"
 mkdir -p "$S" "$DEST"

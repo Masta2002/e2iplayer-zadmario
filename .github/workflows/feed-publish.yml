@@ -37,38 +37,9 @@ jobs:
           path: dist
 
       - name: Pages site
-        run: |
-          set -eu
-          mkdir -p site/resources/bin
-          for d in dist/feed-*; do
-              plat=${d#dist/feed-}
-              cp -r "$d" "site/resources/bin/$plat"
-              (cd "site/resources/bin/$plat" && sha256sum -c SHA256SUMS)
-          done
-          cp feed/SOURCES.md site/
-          touch site/.nojekyll
-          python3 - "${GITHUB_REF_NAME}" "${GITHUB_SHA}" <<'EOF'
-          import html, json, os, sys
-          ref, sha = sys.argv[1:3]
-          base = 'site/resources/bin'
-          plats = sorted(os.listdir(base))
-          index = {'ref': ref, 'commit': sha, 'platforms': {}}
-          rows = []
-          for p in plats:
-              info = json.load(open(os.path.join(base, p, 'index.json')))
-              index['platforms'][p] = info
-              for name, f in sorted(info['files'].items()):
-                  rows.append('<tr><td>%s</td><td><a href="resources/bin/%s/%s">%s</a></td><td>%s</td><td><code>%s</code></td></tr>'
-                              % (p, p, html.escape(name), html.escape(name), html.escape(f['version']), f['sha256']))
-          json.dump(index, open('site/resources/index.json', 'w'), indent=1, sort_keys=True)
-          open('site/index.html', 'w').write(
-              '<!doctype html><meta charset="utf-8"><title>E2iPlayer binary feed</title>'
-              '<h1>E2iPlayer binary feed</h1><p>%s (%s) - built from <a href="SOURCES.md">these sources</a>; '
-              'checksums in resources/bin/&lt;platform&gt;/SHA256SUMS</p>'
-              '<table><tr><th>platform</th><th>file</th><th>version</th><th>sha256</th></tr>%s</table>'
-              % (html.escape(ref), sha[:8], ''.join(rows)))
-          EOF
-          find site -type f | sort
+        env:
+          PLAT: site
+        run: sh feed/scripts/build-all.sh site
 
       - uses: actions/upload-pages-artifact@v5
         with:
@@ -76,7 +47,9 @@ jobs:
 
       - name: Source archive
         if: startsWith(github.ref, 'refs/tags/feed-')
-        run: sh feed/scripts/sources-tarball.sh "${GITHUB_REF_NAME}" release
+        env:
+          PLAT: armv7
+        run: sh feed/scripts/build-all.sh sources-tarball
 
       - uses: actions/upload-artifact@v7
         if: startsWith(github.ref, 'refs/tags/feed-')
@@ -116,8 +89,10 @@ jobs:
         run: |
           set -eu
           mkdir assets
-          for d in dist/feed-*; do
-              plat=${d#dist/feed-}
+          # the platform from each index.json (one artifact lies directly in dist/)
+          for idx in $(find dist -name index.json); do
+              d=$(dirname "$idx")
+              plat=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["platform"])' "$idx")
               for f in "$d"/*; do cp "$f" "assets/$plat-$(basename "$f")"; done
           done
           cp release/sources-*.tar.xz assets/
