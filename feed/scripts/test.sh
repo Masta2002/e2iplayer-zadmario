@@ -28,10 +28,11 @@ log "lsdir"
 mkdir -p d/sub
 echo x > d/a.txt
 "$OUT/lsdir" --version | grep -q '^lsdir v' || fail "lsdir --version"
-"$OUT/lsdir" "$T/d" > lsdir.out 2>/dev/null || true
+# lsdir writes its list to stderr; arguments as in hosts/hostlocalmedia.py
+"$OUT/lsdir" "$T/d" rdl rd 0 100 '*.txt' '*' > /dev/null 2> lsdir.out || true
 cat lsdir.out
-grep -q 'a.txt' lsdir.out || fail "lsdir does not list a.txt"
-grep -q 'sub' lsdir.out || fail "lsdir does not list sub"
+grep -q '^a.txt//r//' lsdir.out || fail "lsdir does not list a.txt"
+grep -q '^sub//d//' lsdir.out || fail "lsdir does not list sub"
 
 log "cmdwrap"
 "$OUT/cmdwrap" | grep -q '^Version: 2' || fail "cmdwrap usage"
