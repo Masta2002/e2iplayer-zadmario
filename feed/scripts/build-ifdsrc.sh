@@ -10,6 +10,8 @@ log "gst-ifdsrc $BINCOMP_REV"
 fetch_git bincomp "$BINCOMP_GIT" "$BINCOMP_REV"
 (
     cd "$WORK/src/bincomp/gst-ifdsrc/gst-ifdsrc"
+    # what configure checks, with pkg-config's own reason when it fails
+    pkg-config --print-errors --modversion gstreamer-1.0 gstreamer-base-1.0 gstreamer-controller-1.0
     autoreconf --force --install
     ./configure --disable-static CFLAGS="-Os"
     make -j"$JOBS"

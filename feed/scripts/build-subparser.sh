@@ -16,7 +16,9 @@ fetch_git deps "$DEPS_GIT" "$DEPS_REV"
     [ -d "$EXPAT" ] || EXPAT=src/expat-2.2.0
     EXPAT_RANDOM=""
     [ -f "$EXPAT/random_dev_urandom.c" ] && EXPAT_RANDOM="$EXPAT/random_dev_urandom.c"
-    PYINC=$(python$PYVER -c "import sysconfig; print(sysconfig.get_paths()['include'])")
+    # INCLUDEPY: Debian's Python 2 sysconfig paths point to /usr/local
+    PYINC=$(python$PYVER -c "import sysconfig; print(sysconfig.get_config_var('INCLUDEPY'))")
+    ls "$PYINC/Python.h"
     $CC src/subparsermodule.c src/vlc/src/subtitle.c src/ffmpeg/src/htmlsubtitles.c \
         $EXPAT/xmlparse.c $EXPAT/xmlrole.c $EXPAT/xmltok.c $EXPAT/xmltok_impl.c $EXPAT/xmltok_ns.c \
         $EXPAT_RANDOM src/ttml/src/ttmlparser.c src/html/src/htmlcleaner.c \
