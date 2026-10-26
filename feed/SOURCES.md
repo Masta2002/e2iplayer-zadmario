@@ -13,6 +13,8 @@ libc, OpenSSL and libcurl of the image.
 | `curl` | curl (HTTP/HTTPS only) + OpenSSL, zlib - the same static libcurl hlsdl uses | oe-core `curl` (feature set reduced to what the plugin needs); CA paths of OE images | - | curl, Apache-2.0 (OpenSSL), Zlib |
 | `lsdir` | e2iplayer-deps `lsdir/` | same recipe, `SOURCE_FILES3` | - | GPL-2.0 |
 | `cmdwrap` | e2iplayer-deps `cmdwrap/` | same recipe, `SOURCE_FILES4` | - | GPL-2.0 |
+| `e2ipow` | e2iplayer-deps `e2ipow/` (proof of work solvers, e.g. Byse) | same recipe, `SOURCE_FILES7` | - | GPL-3.0-or-later |
+| `exteplayer3png.so` | e2iplayer-deps `exteplayer3png/` (PNG writer exteplayer3 loads for graphic subtitles) | same recipe, `SOURCE_FILES8`; built in a Debian 11 container of the platform (glibc 2.31) against libpng16 (`libpng16.so.16` of the image) | - | GPL-2.0-or-later |
 | `f4mdump` | e2iplayer-deps `f4mdump/` (with librtmp 2.6, TinyXML-2) + OpenSSL, zlib | same recipe, `SOURCE_FILES5` + `SOURCE_FILES6` | - | GPL-2.0, LGPL-2.1 (librtmp), Zlib (TinyXML-2) |
 | `_subparser.so_py<X.Y>` | e2iplayer-deps `e2isubparser/` (with Expat) | same recipe, `SOURCE_FILES1`; built per Python version (2.7, 3.11, 3.12, 3.13, 3.14) in a Debian 11 container of the platform (glibc 2.31): 2.7 against python2.7-dev, 3.x against the headers of the pinned CPython source; each 3.x module is tested in the python:3.x image; libpython not linked | - | GPL-2.0, MIT (Expat), LGPL-2.1 (VLC/FFmpeg parts) |
 | `libgstifdsrc.so` | oe-mirrors/iptvplayer-bin-components `gst-ifdsrc/` | oe-alliance `gst-ifdsrc_git.bb` (autotools); built in a Debian 11 container of the platform against GStreamer 1.18 (loads in every newer 1.x) | - | LGPL-2.0 |

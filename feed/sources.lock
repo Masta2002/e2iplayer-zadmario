@@ -23,9 +23,9 @@ CURL_VERSION=8.23.0
 CURL_URL=https://github.com/curl/curl/releases/download/curl-8_23_0/curl-8.23.0.tar.xz
 CURL_SHA256=8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5
 
-# hlsdl, cmdwrap, lsdir, f4mdump: oe-mirrors/e2iplayer-deps master
+# hlsdl, cmdwrap, lsdir, f4mdump, e2ipow, exteplayer3png: oe-mirrors/e2iplayer-deps master
 DEPS_GIT=https://github.com/oe-mirrors/e2iplayer-deps.git
-DEPS_REV=08dff8e3fa0ce62569b60d348a375a0d70a69ba9
+DEPS_REV=2670d920a2bb5d71f9ef79ec3555113af0741b73
 
 # gst-ifdsrc: oe-mirrors/iptvplayer-bin-components master (oe-alliance gst-ifdsrc_git.bb)
 BINCOMP_GIT=https://github.com/oe-mirrors/iptvplayer-bin-components.git

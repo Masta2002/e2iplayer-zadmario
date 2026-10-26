@@ -1,7 +1,8 @@
 #!/bin/sh
-# hlsdl, cmdwrap, lsdir, f4mdump from oe-mirrors/e2iplayer-deps.
+# hlsdl, cmdwrap, lsdir, f4mdump, e2ipow from oe-mirrors/e2iplayer-deps.
 # Source lists and compiler flags as in do_compile() of oe-alliance-core
-# enigma2-plugin-extensions-e2iplayer-deps.bb (SOURCE_FILES2..6), plus -static.
+# enigma2-plugin-extensions-e2iplayer-deps.bb (SOURCE_FILES2..7), plus -static.
+# exteplayer3png.so (SOURCE_FILES8) loads into exteplayer3: build-png.sh.
 . "$(dirname "$0")/common.sh"
 
 log "e2iplayer-deps $DEPS_REV"
@@ -37,6 +38,13 @@ log "cmdwrap"
     $CC src/cmdwrap.c -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE \
         -Isrc $CFLAGS -o cmdwrap $LDFLAGS
     install_bin cmdwrap
+)
+
+log "e2ipow"
+(
+    cd "$D/e2ipow"
+    $CC src/e2ipow.c -O2 -Wall $CFLAGS -o e2ipow $LDFLAGS
+    install_bin e2ipow
 )
 
 log "f4mdump"

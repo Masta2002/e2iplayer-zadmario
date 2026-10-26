@@ -84,6 +84,20 @@ grep -q 'HTTPS' curl.out || fail "curl without HTTPS"
 "$OUT/curl" -fsS -o curl.html https://ftp.gnu.org/gnu/wget/ || fail "curl https download"
 grep -q 'wget-1.25.0.tar.gz' curl.html || fail "curl downloaded something else"
 
+log "e2ipow"
+"$OUT/e2ipow" --version | grep -qE '^e2ipow [0-9]' || fail "e2ipow --version"
+"$OUT/e2ipow" --list | grep -qx byse || fail "e2ipow --list has no byse"
+# expected results as in the e2ipow job of the e2iplayer-deps CI (= scripts/bysepow.py)
+for c in 'e2iplayer-ci-0123456789abcdef 8 0 1|{"solution": "59", "hashes": 60}' \
+         '3f9c1a7be05d4e21 12 1 2|{"solution": "15201", "hashes": 7601}'; do
+    out=$("$OUT/e2ipow" byse ${c%%|*} 120)
+    echo "byse ${c%%|*} -> $out"
+    test "$out" = "${c#*|}" || fail "e2ipow byse ${c%%|*}: got $out"
+done
+rc=0; "$OUT/e2ipow" byse abc 64 0 1 1 > pow.out || rc=$?
+test $rc -eq 3 || fail "e2ipow time limit: exit code $rc instead of 3"
+grep -qF '"solution": null' pow.out || fail "e2ipow time limit output"
+
 log "f4mdump"
 "$OUT/f4mdump" 2>&1 | grep -qE '^F4MDump v[0-9]' || fail "f4mdump version"
 mkdir -p hds

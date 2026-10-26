@@ -24,6 +24,8 @@ version = {
     'curl-impersonate': src['CURLIMP_VERSION'],
     'curl': src['CURL_VERSION'],
     'libgstifdsrc.so': 'iptvplayer-bin-components ' + src['BINCOMP_REV'][:7],
+    'e2ipow': 'e2iplayer-deps ' + src['DEPS_REV'][:7],
+    'exteplayer3png.so': 'e2iplayer-deps ' + src['DEPS_REV'][:7],
 }
 files = {}
 for name in sorted(os.listdir('.')):

@@ -125,6 +125,14 @@ jobs:
               gcc libc6-dev binutils make autoconf automake libtool pkg-config git ca-certificates
               libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-tools
             test: ''
+          - plat: armv7
+            docker: linux/arm/v7
+            part: exteplayer3png
+            step: build-png
+            py: ''
+            image: debian:bullseye-slim      # glibc 2.31, libpng 1.6
+            pkgs: gcc libc6-dev binutils git ca-certificates libpng-dev python3 python3-pil
+            test: ''
     steps:
       - uses: actions/checkout@v7
 
