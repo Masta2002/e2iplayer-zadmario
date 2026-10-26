@@ -125,6 +125,14 @@ jobs:
             test: python:3.14-slim
           - plat: armv7
             docker: linux/arm/v7
+            part: subparser-py3.15
+            step: build-subparser
+            py: '3.15'
+            image: debian:bullseye-slim      # glibc 2.31, headers of the pinned CPython
+            pkgs: gcc libc6-dev binutils make git ca-certificates curl xz-utils
+            test: python:3.15-slim
+          - plat: armv7
+            docker: linux/arm/v7
             part: gst-ifdsrc
             step: build-ifdsrc
             py: ''
