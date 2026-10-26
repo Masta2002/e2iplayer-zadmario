@@ -33,6 +33,8 @@ BINCOMP_REV=b998ab93ca7f0e74df30a1a0142c5f01ef37a723
 
 # CPython sources: only their headers (Include/ + the pyconfig.h configure writes)
 # are used, to build _subparser.so for Python 3 against an old glibc
+CPYTHON_URL_3_10=https://www.python.org/ftp/python/3.10.22/Python-3.10.22.tar.xz
+CPYTHON_SHA256_3_10=c61fe9b1a1a7ec2a0b0388e664187c378a5325a89e3606d220abf5bdfccb2543
 CPYTHON_URL_3_11=https://www.python.org/ftp/python/3.11.17/Python-3.11.17.tar.xz
 CPYTHON_SHA256_3_11=bfb74ad39efae27cda510f134ab408e00f9992c56851cfc0b1cdb5646da11599
 CPYTHON_URL_3_12=https://www.python.org/ftp/python/3.12.15/Python-3.12.15.tar.xz
