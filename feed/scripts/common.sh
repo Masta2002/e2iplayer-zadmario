@@ -59,15 +59,25 @@ fetch_tar() {
     tar -xf "$WORK/dl/$(basename "$2")" -C "$WORK/src/$1" --strip-components=1
 }
 
-# fetch_git <name> <url> <commit>: check out exactly that commit to $WORK/src/<name>
+# fetch_git <name> <url> <commit> [mirror url]: check out exactly that commit to
+# $WORK/src/<name>; three tries per server (the commit id vouches for any mirror)
 fetch_git() {
-    rm -rf "$WORK/src/$1"
-    git init -q "$WORK/src/$1"
-    git -C "$WORK/src/$1" remote add origin "$2"
-    # not every server hands out a single commit, then take the whole history
-    git -C "$WORK/src/$1" fetch -q --depth 1 origin "$3" || git -C "$WORK/src/$1" fetch -q origin
-    git -C "$WORK/src/$1" checkout -q "$3"
-    test "$(git -C "$WORK/src/$1" rev-parse HEAD)" = "$3"
+    for _url in "$2" ${4:-}; do
+        for _try in 1 2 3; do
+            rm -rf "$WORK/src/$1"
+            git init -q "$WORK/src/$1"
+            git -C "$WORK/src/$1" remote add origin "$_url"
+            # not every server hands out a single commit, then take the whole history
+            if { git -C "$WORK/src/$1" fetch -q --depth 1 origin "$3" || git -C "$WORK/src/$1" fetch -q origin; } \
+                    && git -C "$WORK/src/$1" checkout -q "$3" \
+                    && [ "$(git -C "$WORK/src/$1" rev-parse HEAD)" = "$3" ]; then
+                return 0
+            fi
+            echo "fetch_git: $_url failed (try $_try)"
+            sleep 10
+        done
+    done
+    return 1
 }
 
 # apply_patches <srcdir> <patchdir>: all *.patch in name order, -p1

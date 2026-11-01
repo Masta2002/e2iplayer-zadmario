@@ -20,9 +20,9 @@ done
 # curl-impersonate is shipped as the upstream release binary: its source is the
 # lexiforest/curl-impersonate tag named in sources.lock (MIT / BSD-style licenses)
 for v in DEPS QUICKJS RTMPDUMP BINCOMP; do
-    eval "git=\${${v}_GIT}; rev=\${${v}_REV}"
+    eval "git=\${${v}_GIT}; rev=\${${v}_REV}; mirror=\${${v}_GIT_MIRROR:-}"
     name=$(basename "$git" .git)
-    fetch_git "src-$name" "$git" "$rev"
+    fetch_git "src-$name" "$git" "$rev" "$mirror"
     git -C "$WORK/src/src-$name" archive --format=tar --prefix="$name-$rev/" "$rev" | xz -9 > "$S/$name-$rev.tar.xz"
 done
 tar -C "$FEED/.." -cf - feed | xz -9 > "$S/feed.tar.xz"

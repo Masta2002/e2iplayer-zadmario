@@ -64,6 +64,7 @@ WGET_SHA256=766e48423e79359ea31e41db9e5c289675947a7fcf2efdcedb726ac9d0da3784
 # rtmpdump: meta-multimedia rtmpdump_2.6.bb + oe-alliance rtmpdump_2.%.bbappend
 RTMPDUMP_VERSION=2.6
 RTMPDUMP_GIT=https://git.ffmpeg.org/rtmpdump.git
+RTMPDUMP_GIT_MIRROR=https://github.com/mirror/rtmpdump.git
 RTMPDUMP_REV=6f6bb1353fc84f4cc37138baa99f586750028a01
 
 # uchardet: meta-oe uchardet_0.0.8.bb

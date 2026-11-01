@@ -4,7 +4,7 @@
 . "$(dirname "$0")/common.sh"
 
 log "rtmpdump $RTMPDUMP_VERSION"
-fetch_git rtmpdump "$RTMPDUMP_GIT" "$RTMPDUMP_REV"
+fetch_git rtmpdump "$RTMPDUMP_GIT" "$RTMPDUMP_REV" "$RTMPDUMP_GIT_MIRROR"
 apply_patches "$WORK/src/rtmpdump" "$FEED/patches/rtmpdump"
 (
     cd "$WORK/src/rtmpdump"
